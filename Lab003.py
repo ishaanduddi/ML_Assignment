@@ -39,17 +39,6 @@ def A2_OneHot(df):
 onehot=A2_OneHot(df)
 print(onehot)
 
-##A3
-print("A3")
-def A3(df):
-    encoded_df = pd.get_dummies(df)
-    print("Original dataset dimensions:", df.shape)
-    print("Encoded dataset dimensions:", encoded_df.shape)
-
-    print("Original number of features:", df.shape[1])
-    print("Encoded number of features:", encoded_df.shape[1])
-
-print(A3(dfall))
 ##A4
 a=[5,6,7,8]
 b=[1,2,3,4]
@@ -208,8 +197,8 @@ A8(dfplot)
 ##A9
 df_numeric = dfall.select_dtypes(include=['number'])
 
-mean_numpy = np.mean(df_numeric, axis=0)
-std_numpy = np.std(df_numeric, axis=0)
+mean_numpy = np.mean(df_numeric)
+std_numpy = np.std(df_numeric)
 meann = []
 stdd = []
 
@@ -245,10 +234,10 @@ var = variance(feature)
 print("Mean :", avg)
 print("Variance :", var)
 
-hist, bins = np.histogram(feature, bins=10)
+hist, bins = np.histogram(feature)
 
 print("Histogram Frequencies :", hist)
 print("Histogram Bins :", bins)
 
-plt.hist(feature, bins=10, edgecolor="black")
+plt.hist(feature)
 plt.show()
