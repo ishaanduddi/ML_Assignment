@@ -1,93 +1,168 @@
-import pandas as pd
+# ================================================================
+# LAB 06 - K NEAREST NEIGHBOUR CLASSIFIER
+# DATASET : MARKETING CAMPAIGN
+# A1 TO A9
+# ================================================================
+
+
+# ================================================================
+# IMPORT LIBRARIES
+# ================================================================
+
 import math
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
-# ==================================================
-# A1 : K-NEAREST NEIGHBOURS
-# ==================================================
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
 
-# Read Excel file
+
+# ================================================================
+# LOAD DATASET
+# ================================================================
 df = pd.read_excel(
     r"C:\ISHU\Education\Amrita\5th_Sem\ML\Assignment\Material\Lab_Session_Data_Lab04.xlsx",
     sheet_name="marketing_campaign"
 )
 
+print("\nDataset Loaded Successfully")
+print("Shape :", df.shape)
 
-# --------------------------------------------------
-# MEAN, MEDIAN, MODE
-# --------------------------------------------------
+
+# ================================================================
+# A1 : MODULAR KNN CLASSIFIER
+# ================================================================
+
+
+# ------------------------------------------------
+# MEAN
+# ------------------------------------------------
 
 def mean(numbers):
+
     length = len(numbers)
-    sum = 0
+    total = 0
 
     for i in range(len(numbers)):
-        sum += numbers[i]
+        total += numbers[i]
 
-    avg = sum / length
+    avg = total / length
+
     return avg
 
 
+# ------------------------------------------------
+# MEDIAN
+# ------------------------------------------------
+
 def median(numbers):
+
     numbers = numbers.copy()
     numbers.sort()
+
     n = len(numbers)
 
     if n % 2 != 0:
+
         return numbers[n // 2]
 
     else:
-        return (numbers[(n // 2) - 1] + numbers[n // 2]) / 2
 
+        return (
+            numbers[(n // 2) - 1] +
+            numbers[n // 2]
+        ) / 2
+
+
+# ------------------------------------------------
+# MODE
+# ------------------------------------------------
 
 def mode(numbers):
+
     max_count = 0
     mode_value = None
 
     for num in numbers:
+
         count = 0
 
         for x in numbers:
+
             if x == num:
                 count += 1
 
         if count > max_count:
+
             max_count = count
             mode_value = num
 
     return mode_value, max_count
 
 
-# --------------------------------------------------
+# ------------------------------------------------
+# FIND CENTRAL TENDENCIES
+# ------------------------------------------------
+
+def find_central_tendencies(numbers):
+
+    mean_value = mean(numbers)
+    median_value = median(numbers)
+    mode_value, mode_count = mode(numbers)
+
+    return (
+        mean_value,
+        median_value,
+        mode_value
+    )
+
+
+# ------------------------------------------------
 # DATA IMPUTATION
-# --------------------------------------------------
+# ------------------------------------------------
 
-def impute_data(df, method="mean"):
+def impute_data(data, method="median"):
 
-    df = df.copy()
+    data = data.copy()
 
-    for column in df.columns:
+    for column in data.columns:
 
-        if df[column].isnull().sum() > 0:
+        values = data[column].dropna().tolist()
 
-            values = df[column].dropna().tolist()
+        if len(values) == 0:
+            continue
 
-            if method == "mean":
-                value = mean(values)
+        mean_value, median_value, mode_value = (
+            find_central_tendencies(values)
+        )
 
-            elif method == "median":
-                value = median(values)
+        if method == "mean":
 
-            elif method == "mode":
-                value, count = mode(values)
+            fill_value = mean_value
 
-            df[column] = df[column].fillna(value)
+        elif method == "median":
 
-    return df
+            fill_value = median_value
+
+        elif method == "mode":
+
+            fill_value = mode_value
+
+        else:
+
+            fill_value = median_value
+
+        data[column] = data[column].fillna(
+            fill_value
+        )
+
+    return data
 
 
-# --------------------------------------------------
+# ------------------------------------------------
 # EUCLIDEAN DISTANCE
-# --------------------------------------------------
+# ------------------------------------------------
 
 def euclidean(a, b):
 
@@ -96,9 +171,11 @@ def euclidean(a, b):
     for i in range(len(a)):
 
         if a[i] > b[i]:
+
             euc += (a[i] - b[i]) ** 2
 
         else:
+
             euc += (b[i] - a[i]) ** 2
 
     euc = math.sqrt(euc)
@@ -106,13 +183,14 @@ def euclidean(a, b):
     return euc
 
 
-# --------------------------------------------------
+# ------------------------------------------------
 # BUBBLE SORT
-# --------------------------------------------------
+# ------------------------------------------------
 
 def bubble_sort(data):
 
     data = data.copy()
+
     n = len(data)
 
     for i in range(n):
@@ -121,18 +199,22 @@ def bubble_sort(data):
 
             if data[j][0] > data[j + 1][0]:
 
-                data[j], data[j + 1] = data[j + 1], data[j]
+                data[j], data[j + 1] = (
+                    data[j + 1],
+                    data[j]
+                )
 
     return data
 
 
-# --------------------------------------------------
+# ------------------------------------------------
 # SELECTION SORT
-# --------------------------------------------------
+# ------------------------------------------------
 
 def selection_sort(data):
 
     data = data.copy()
+
     n = len(data)
 
     for i in range(n):
@@ -142,16 +224,20 @@ def selection_sort(data):
         for j in range(i + 1, n):
 
             if data[j][0] < data[min_index][0]:
+
                 min_index = j
 
-        data[i], data[min_index] = data[min_index], data[i]
+        data[i], data[min_index] = (
+            data[min_index],
+            data[i]
+        )
 
     return data
 
 
-# --------------------------------------------------
+# ------------------------------------------------
 # INSERTION SORT
-# --------------------------------------------------
+# ------------------------------------------------
 
 def insertion_sort(data):
 
@@ -160,11 +246,16 @@ def insertion_sort(data):
     for i in range(1, len(data)):
 
         key = data[i]
+
         j = i - 1
 
-        while j >= 0 and data[j][0] > key[0]:
+        while (
+            j >= 0 and
+            data[j][0] > key[0]
+        ):
 
             data[j + 1] = data[j]
+
             j -= 1
 
         data[j + 1] = key
@@ -172,649 +263,748 @@ def insertion_sort(data):
     return data
 
 
-# --------------------------------------------------
-# FIND K NEAREST NEIGHBOURS
-# --------------------------------------------------
+# ------------------------------------------------
+# SORTING CONFIGURATION
+# ------------------------------------------------
 
-def identify_neighbors(X_train, y_train, test_point, k,
-                       sorting_algorithm="bubble"):
+def sort_data(data, algorithm="bubble"):
+
+    if algorithm == "bubble":
+
+        return bubble_sort(data)
+
+    elif algorithm == "selection":
+
+        return selection_sort(data)
+
+    elif algorithm == "insertion":
+
+        return insertion_sort(data)
+
+    else:
+
+        return bubble_sort(data)
+
+
+# ------------------------------------------------
+# IDENTIFY NEIGHBOURS
+# ------------------------------------------------
+
+def identify_neighbors(
+        X_train,
+        y_train,
+        test_point,
+        k,
+        sorting_algorithm="bubble"):
 
     distances = []
 
     for i in range(len(X_train)):
 
-        distance = euclidean(test_point, X_train[i])
+        distance = euclidean(
+            test_point,
+            X_train[i]
+        )
 
-        distances.append((distance, y_train[i], i))
+        distances.append(
+            (
+                distance,
+                y_train[i],
+                i
+            )
+        )
 
-    if sorting_algorithm == "bubble":
-        distances = bubble_sort(distances)
-
-    elif sorting_algorithm == "selection":
-        distances = selection_sort(distances)
-
-    elif sorting_algorithm == "insertion":
-        distances = insertion_sort(distances)
-
-    else:
-        print("Invalid sorting algorithm")
-        return []
+    distances = sort_data(
+        distances,
+        sorting_algorithm
+    )
 
     return distances[:k]
 
 
-# --------------------------------------------------
-# CLASS ASSIGNMENT
-# --------------------------------------------------
+# ------------------------------------------------
+# FAST NEIGHBOUR IDENTIFICATION
+#
+# Used by A7-A9 to avoid repeatedly doing
+# expensive full bubble/selection/insertion sorts.
+#
+# A1 still contains all three required DSA
+# sorting algorithms.
+# ------------------------------------------------
+
+def fast_identify_neighbors(
+        X_train,
+        y_train,
+        test_point,
+        k):
+
+    nearest = []
+
+    for i in range(len(X_train)):
+
+        distance = euclidean(
+            test_point,
+            X_train[i]
+        )
+
+        current = (
+            distance,
+            y_train[i],
+            i
+        )
+
+        # Insert current point in the correct
+        # position among the k nearest points.
+
+        position = len(nearest)
+
+        for j in range(len(nearest)):
+
+            if distance < nearest[j][0]:
+
+                position = j
+                break
+
+        nearest.insert(
+            position,
+            current
+        )
+
+        # Keep only k neighbours
+        if len(nearest) > k:
+
+            nearest.pop()
+
+    return nearest
+
+
+# ------------------------------------------------
+# CLASSIFICATION
+# ------------------------------------------------
 
 def classify(neighbors):
 
-    votes = {}
+    class_counts = {}
 
-    for distance, label, index in neighbors:
+    for neighbor in neighbors:
 
-        if label not in votes:
-            votes[label] = 0
+        label = neighbor[1]
 
-        votes[label] += 1
+        if label not in class_counts:
 
-    max_votes = max(votes.values())
+            class_counts[label] = 0
 
-    winners = []
+        class_counts[label] += 1
 
-    for label in votes:
+    max_count = max(
+        class_counts.values()
+    )
 
-        if votes[label] == max_votes:
-            winners.append(label)
+    candidates = []
+
+    for label in class_counts:
+
+        if class_counts[label] == max_count:
+
+            candidates.append(label)
 
     # Tie breaking:
-    # choose the class of the closest neighbour
+    # choose the smallest class label
 
-    if len(winners) > 1:
-
-        for distance, label, index in neighbors:
-
-            if label in winners:
-                return label
-
-    return winners[0]
+    return min(candidates)
 
 
-# --------------------------------------------------
-# KNN CLASSIFIER
-# --------------------------------------------------
+# ------------------------------------------------
+# NORMAL KNN
+# ------------------------------------------------
 
-def knn(X_train, y_train, X_test, k=5,
+def knn_classify(
+        X_train,
+        y_train,
+        test_point,
+        k,
         sorting_algorithm="bubble"):
 
-    predictions = []
+    neighbors = identify_neighbors(
+        X_train,
+        y_train,
+        test_point,
+        k,
+        sorting_algorithm
+    )
 
-    for test_point in X_test:
+    prediction = classify(
+        neighbors
+    )
 
-        neighbors = identify_neighbors(
-            X_train,
-            y_train,
-            test_point,
-            k,
-            sorting_algorithm
-        )
-
-        prediction = classify(neighbors)
-
-        predictions.append(prediction)
-
-    return predictions
+    return prediction
 
 
-# --------------------------------------------------
-# PREPARE DATA
-# --------------------------------------------------
+# ================================================================
+# PREPARE DATA FOR A1
+# ================================================================
+
+
+# ------------------------------------------------
+# SELECT NUMERICAL FEATURES
+# ------------------------------------------------
 
 numeric_columns = df.select_dtypes(
-    include="number"
+    include=np.number
 ).columns.tolist()
 
-numeric_features = []
+
+# ------------------------------------------------
+# REMOVE ID AND TARGET FROM FEATURES
+# ------------------------------------------------
+
+if "ID" in numeric_columns:
+
+    numeric_columns.remove("ID")
+
+
+if "Response" in numeric_columns:
+
+    numeric_columns.remove("Response")
+
+
+print("\nNumerical Features Used:")
 
 for column in numeric_columns:
 
-    if column != "Response":
-        numeric_features.append(column)
-
-print("Numerical Features:")
-print(numeric_features)
+    print(column)
 
 
-# --------------------------------------------------
-# FIND MEAN, MEDIAN AND MODE
-# --------------------------------------------------
+# ------------------------------------------------
+# FIND CENTRAL TENDENCIES
+# ------------------------------------------------
 
 print("\nCENTRAL TENDENCIES")
 
-for column in numeric_features:
+for column in numeric_columns:
 
     values = df[column].dropna().tolist()
 
+    mean_value, median_value, mode_value = (
+        find_central_tendencies(values)
+    )
+
     print("\n", column)
-    print("Mean   :", mean(values))
-    print("Median :", median(values))
-    print("Mode   :", mode(values))
+    print("Mean   :", mean_value)
+    print("Median :", median_value)
+    print("Mode   :", mode_value)
 
 
-# --------------------------------------------------
+# ------------------------------------------------
 # IMPUTE MISSING VALUES
-# --------------------------------------------------
+# ------------------------------------------------
 
-df = impute_data(df, "mean")
+# Median is used as the selected imputation method
 
-
-# --------------------------------------------------
-# CREATE X AND Y
-# --------------------------------------------------
-
-X = df[numeric_features].values.tolist()
-y = df["Response"].values.tolist()
-
-
-# --------------------------------------------------
-# TRAIN TEST SPLIT
-# --------------------------------------------------
-
-split = int(0.8 * len(X))
-
-X_train = X[:split]
-y_train = y[:split]
-
-X_test = X[split:]
-y_test = y[split:]
-
-
-# --------------------------------------------------
-# NORMALIZATION
-# --------------------------------------------------
-
-def normalize(X_train, X_test):
-
-    X_train = [row.copy() for row in X_train]
-    X_test = [row.copy() for row in X_test]
-
-    columns = len(X_train[0])
-
-    for j in range(columns):
-
-        values = []
-
-        for i in range(len(X_train)):
-            values.append(X_train[i][j])
-
-        min_value = min(values)
-        max_value = max(values)
-
-        for i in range(len(X_train)):
-
-            if max_value != min_value:
-                X_train[i][j] = (
-                    X_train[i][j] - min_value
-                ) / (max_value - min_value)
-
-        for i in range(len(X_test)):
-
-            if max_value != min_value:
-                X_test[i][j] = (
-                    X_test[i][j] - min_value
-                ) / (max_value - min_value)
-
-    return X_train, X_test
-
-
-X_train, X_test = normalize(X_train, X_test)
-
-
-# --------------------------------------------------
-# RUN KNN
-# --------------------------------------------------
-
-k = 5
-
-predictions = knn(
-    X_train,
-    y_train,
-    X_test,
-    k,
-    "bubble"
+df[numeric_columns] = impute_data(
+    df[numeric_columns],
+    method="median"
 )
 
-print("\nA1 - NORMAL KNN")
-print("Actual Class    :", y_test[0])
-print("Predicted Class :", predictions[0])
+
+# ------------------------------------------------
+# CREATE X AND Y
+# ------------------------------------------------
+
+X = df[numeric_columns].values
+y = df["Response"].values
 
 
-# ==================================================
+# Convert NumPy arrays into lists
+
+X = X.tolist()
+y = y.tolist()
+
+
+print("\nX Shape :", len(X))
+print("Y Shape :", len(y))
+
+
+# ================================================================
+# A1 : TEST MANUAL KNN
+# ================================================================
+
+print("\n================ A1 ================")
+
+test_point = X[0]
+
+neighbors = identify_neighbors(
+    X,
+    y,
+    test_point,
+    k=3,
+    sorting_algorithm="bubble"
+)
+
+print("\n3 Nearest Neighbours:")
+
+for neighbor in neighbors:
+
+    print(
+        "Distance :",
+        neighbor[0],
+        "Class :",
+        neighbor[1]
+    )
+
+prediction = classify(
+    neighbors
+)
+
+print("\nPredicted Class :", prediction)
+
+
+# ================================================================
 # A2 : WEIGHTED KNN
-# ==================================================
+# ================================================================
 
-# --------------------------------------------------
-# WEIGHTED CLASS ASSIGNMENT
-# --------------------------------------------------
+
+# ------------------------------------------------
+# WEIGHTED CLASSIFICATION
+# ------------------------------------------------
 
 def weighted_classify(neighbors):
 
     class_weights = {}
 
-    for distance, label, index in neighbors:
+    for neighbor in neighbors:
 
-        # Calculate weight using inverse distance
+        distance = neighbor[0]
+        label = neighbor[1]
+
+        # If distance is zero, the point is
+        # exactly the same as the test point.
+
         if distance == 0:
-            weight = float("inf")
-        else:
-            weight = 1 / distance
+
+            return label
+
+        weight = 1 / distance
 
         if label not in class_weights:
+
             class_weights[label] = 0
 
         class_weights[label] += weight
 
-    # Find class having maximum total weight
-    max_weight = max(class_weights.values())
 
-    winners = []
+    # Find maximum class weight
+
+    max_weight = max(
+        class_weights.values()
+    )
+
+    candidates = []
 
     for label in class_weights:
 
         if class_weights[label] == max_weight:
-            winners.append(label)
 
-    # Tie breaking:
-    # choose the class of the closest neighbour
-    if len(winners) > 1:
-
-        for distance, label, index in neighbors:
-
-            if label in winners:
-                return label
-
-    return winners[0]
+            candidates.append(label)
 
 
-# --------------------------------------------------
-# WEIGHTED KNN CLASSIFIER
-# --------------------------------------------------
+    # Tie breaking
 
-def weighted_knn(X_train, y_train, X_test, k=5,
-                 sorting_algorithm="bubble"):
-
-    predictions = []
-
-    for test_point in X_test:
-
-        # Reuse A1 neighbour identification module
-        neighbors = identify_neighbors(
-            X_train,
-            y_train,
-            test_point,
-            k,
-            sorting_algorithm
-        )
-
-        # Only class assignment is changed
-        prediction = weighted_classify(neighbors)
-
-        predictions.append(prediction)
-
-    return predictions
+    return min(candidates)
 
 
-# --------------------------------------------------
-# RUN WEIGHTED KNN
-# --------------------------------------------------
+# ------------------------------------------------
+# WEIGHTED KNN
+# ------------------------------------------------
 
-k = 5
+def weighted_knn(
+        X_train,
+        y_train,
+        test_point,
+        k,
+        sorting_algorithm="bubble"):
 
-weighted_predictions = weighted_knn(
-    X_train,
-    y_train,
-    X_test,
-    k,
-    "bubble"
-)
+    # Reuse A1 neighbour identification
 
-
-# --------------------------------------------------
-# DISPLAY NEIGHBOURS AND WEIGHTS
-# --------------------------------------------------
-
-# Reuse A1 identify_neighbors() function
-neighbors = identify_neighbors(
-    X_train,
-    y_train,
-    X_test[0],
-    k,
-    "bubble"
-)
-
-print("\nA2 - WEIGHTED KNN")
-print("\nK NEAREST NEIGHBOURS")
-
-for i, neighbor in enumerate(neighbors):
-
-    distance, label, index = neighbor
-
-    # Inverse distance weighting
-    if distance == 0:
-        weight = float("inf")
-    else:
-        weight = 1 / distance
-
-    print(
-        "Neighbour", i + 1,
-        "Distance =", distance,
-        "Class =", label,
-        "Weight =", weight
+    neighbors = identify_neighbors(
+        X_train,
+        y_train,
+        test_point,
+        k,
+        sorting_algorithm
     )
 
+    # Use weighted classification
 
-# --------------------------------------------------
-# CALCULATE TOTAL WEIGHT OF EACH CLASS
-# --------------------------------------------------
-
-class_weights = {}
-
-for distance, label, index in neighbors:
-
-    if distance == 0:
-        weight = float("inf")
-    else:
-        weight = 1 / distance
-
-    if label not in class_weights:
-        class_weights[label] = 0
-
-    class_weights[label] += weight
-
-
-print("\nCLASS WEIGHTS")
-
-for label in class_weights:
-
-    print(
-        "Class", label,
-        "Total Weight =", class_weights[label]
+    prediction = weighted_classify(
+        neighbors
     )
 
-
-# --------------------------------------------------
-# FINAL WEIGHTED PREDICTION
-# --------------------------------------------------
-
-print("\nActual Class    :", y_test[0])
-print("Predicted Class :", weighted_predictions[0])
-
-# ==================================================
-# A3 : TRAIN AND TEST DATA SPLIT
-# ==================================================
-
-import numpy as np
-from sklearn.model_selection import train_test_split
+    return prediction
 
 
-# --------------------------------------------------
-# CREATE X AND Y
-# --------------------------------------------------
+# ------------------------------------------------
+# A2 TEST
+# ------------------------------------------------
 
-X = df[numeric_features].values
-y = df["Response"].values
+print("\n================ A2 ================")
 
-
-# --------------------------------------------------
-# DIVIDE DATA INTO TRAIN AND TEST
-# --------------------------------------------------
-
-X_train, X_test, y_train, y_test = train_test_split(
+weighted_prediction = weighted_knn(
     X,
     y,
-    test_size=0.3
+    test_point,
+    k=3,
+    sorting_algorithm="bubble"
+)
+
+print(
+    "Weighted KNN Prediction :",
+    weighted_prediction
 )
 
 
-# Convert NumPy arrays to lists
-# so that A1 and A2 functions can reuse them
+# ================================================================
+# A3 : TRAIN TEST SPLIT
+# ================================================================
 
-X_train = X_train.tolist()
-X_test = X_test.tolist()
-y_train = y_train.tolist()
-y_test = y_test.tolist()
+print("\n================ A3 ================")
+
+X_train, X_test, y_train, y_test = (
+    train_test_split(
+        X,
+        y,
+        test_size=0.3
+    )
+)
 
 
-print("\nA3 - TRAIN TEST SPLIT")
+print(
+    "Total samples    :",
+    len(X)
+)
 
-print("Total samples    :", len(X))
-print("Training samples :", len(X_train))
-print("Testing samples  :", len(X_test))
+print(
+    "Training samples :",
+    len(X_train)
+)
 
-# ==================================================
-# A4 : TRAIN KNN CLASSIFIER
-# ==================================================
+print(
+    "Testing samples  :",
+    len(X_test)
+)
 
-from sklearn.neighbors import KNeighborsClassifier
 
-neigh = KNeighborsClassifier(n_neighbors=3)
+# ================================================================
+# A4 : PACKAGED KNN CLASSIFIER
+# ================================================================
 
-neigh.fit(X_train, y_train)
+print("\n================ A4 ================")
 
-print("\nA4 - KNN CLASSIFIER")
+
+neigh = KNeighborsClassifier(
+    n_neighbors=3
+)
+
+
+neigh.fit(
+    X_train,
+    y_train
+)
+
+
 print("K value :", 3)
 
-
-# ==================================================
-# A5 : FIND NEIGH SCORE
-# ==================================================
-
-neighscore = neigh.score(X_test, y_test)
-
-print("\nA5 - NEIGH SCORE")
-print("Score :", neighscore)
-print("Accuracy :", neighscore * 100, "%")
+print(
+    "Training completed successfully"
+)
 
 
-# ==================================================
-# A6 : FIND NEIGH PREDICT
-# ==================================================
+# ================================================================
+# A5 : NEIGH SCORE
+# ================================================================
 
-neighpredict = neigh.predict(X_test)
-
-print("\nA6 - NEIGH PREDICT")
-print("Predicted Classes :")
-print(neighpredict)
-
-# ==================================================
-# A7 : KNN WITHOUT USING INBUILT KNN LIBRARY
-# ==================================================
+print("\n================ A5 ================")
 
 
-# --------------------------------------------------
-# FIT FUNCTION
-# --------------------------------------------------
+neighscore = neigh.score(
+    X_test,
+    y_test
+)
+
+
+print(
+    "Score :",
+    neighscore
+)
+
+print(
+    "Accuracy :",
+    neighscore * 100,
+    "%"
+)
+
+
+# ================================================================
+# A6 : NEIGH PREDICT
+# ================================================================
+
+print("\n================ A6 ================")
+
+
+neighpredict = neigh.predict(
+    X_test
+)
+
+
+print(
+    "Predicted Classes:"
+)
+
+print(
+    neighpredict.tolist()
+)
+
+
+# ================================================================
+# A7 : MANUAL FIT()
+# ================================================================
+
 
 def fit(X_train, y_train):
 
-    # Store the training data
     model = {}
 
     model["X_train"] = X_train
+
     model["y_train"] = y_train
 
     return model
 
 
-# --------------------------------------------------
-# PREDICT FUNCTION
-# --------------------------------------------------
+# ================================================================
+# A7 : MANUAL PREDICT()
+# ================================================================
 
-def predict(model, X_test, k=3,
-            sorting_algorithm="bubble"):
+def predict(
+        model,
+        X_test,
+        k=3):
 
     X_train = model["X_train"]
+
     y_train = model["y_train"]
 
     predictions = []
 
+
     for test_point in X_test:
 
-        # Reuse A1 function to find neighbours
-        neighbors = identify_neighbors(
+        # Use FAST neighbour identification
+        # instead of bubble sort.
+        #
+        # This prevents A7/A8 from becoming
+        # extremely slow.
+
+        neighbors = fast_identify_neighbors(
             X_train,
             y_train,
             test_point,
-            k,
-            sorting_algorithm
+            k
         )
 
-        # Reuse A1 majority voting function
-        prediction = classify(neighbors)
 
-        predictions.append(prediction)
+        # Reuse A1 majority voting
+
+        prediction = classify(
+            neighbors
+        )
+
+
+        predictions.append(
+            prediction
+        )
+
 
     return predictions
 
 
-# --------------------------------------------------
-# SCORE FUNCTION
-# --------------------------------------------------
+# ================================================================
+# A7 : MANUAL SCORE()
+# ================================================================
 
-def score(model, X_test, y_test, k=3,
-          sorting_algorithm="bubble"):
+def score(
+        model,
+        X_test,
+        y_test,
+        k=3):
 
-    # Get predictions
     predictions = predict(
         model,
         X_test,
-        k,
-        sorting_algorithm
+        k
     )
 
     correct = 0
 
+
     for i in range(len(y_test)):
 
         if predictions[i] == y_test[i]:
+
             correct += 1
 
-    accuracy = correct / len(y_test)
+
+    accuracy = (
+        correct /
+        len(y_test)
+    )
+
 
     return accuracy
 
 
-# ==================================================
-# TRAIN THE MODEL USING FIT()
-# ==================================================
+# ================================================================
+# A7 : EXECUTION
+# ================================================================
 
-my_knn = fit(X_train, y_train)
+print("\n================ A7 ================")
 
 
-# ==================================================
-# PREDICT USING PREDICT()
-# ==================================================
+my_knn = fit(
+    X_train,
+    y_train
+)
+
 
 mypredict = predict(
     my_knn,
     X_test,
-    k=3,
-    sorting_algorithm="bubble"
+    k=3
 )
 
 
-print("\nA7 - PREDICT")
-print("Predicted Classes:")
-print(mypredict)
+print(
+    "\nA7 - PREDICT"
+)
 
+print(
+    "Predicted Classes:"
+)
 
-# ==================================================
-# FIND SCORE USING SCORE()
-# ==================================================
+print(
+    mypredict
+)
+
 
 myscore = score(
     my_knn,
     X_test,
     y_test,
-    k=3,
-    sorting_algorithm="bubble"
+    k=3
 )
 
 
-print("\nA7 - SCORE")
-print("Score :", myscore)
-print("Accuracy :", myscore * 100, "%")
-# ==================================================
-# A8 : COMPARE PACKAGED KNN WITH CREATED KNN
-# ==================================================
+print(
+    "\nA7 - SCORE"
+)
 
-import matplotlib.pyplot as plt
-from sklearn.neighbors import KNeighborsClassifier
+print(
+    "Score :",
+    myscore
+)
+
+print(
+    "Accuracy :",
+    myscore * 100,
+    "%"
+)
 
 
-# --------------------------------------------------
-# K VALUES TO TEST
-# --------------------------------------------------
+# ================================================================
+# A8 : COMPARE PACKAGED KNN AND CREATED KNN
+# ================================================================
 
-k_values = range(1, 16)
+print("\n================ A8 ================")
+
+
+# Test different values of K
+
+k_values = range(
+    1,
+    16
+)
+
 
 packaged_accuracy = []
+
 created_accuracy = []
 
 
-# --------------------------------------------------
-# TEST DIFFERENT K VALUES
-# --------------------------------------------------
+# Fit manual model only once
+
+my_knn = fit(
+    X_train,
+    y_train
+)
+
 
 for k in k_values:
 
-    # ----------------------------------------------
+
+    # ------------------------------------------------
     # PACKAGED KNN
-    # ----------------------------------------------
+    # ------------------------------------------------
 
     neigh = KNeighborsClassifier(
         n_neighbors=k
     )
 
-    neigh.fit(X_train, y_train)
+
+    neigh.fit(
+        X_train,
+        y_train
+    )
+
 
     score1 = neigh.score(
         X_test,
         y_test
     )
 
-    packaged_accuracy.append(score1)
 
-
-    # ----------------------------------------------
-    # CREATED KNN
-    # ----------------------------------------------
-
-    my_knn = fit(
-        X_train,
-        y_train
+    packaged_accuracy.append(
+        score1
     )
+
+
+    # ------------------------------------------------
+    # CREATED KNN
+    # ------------------------------------------------
 
     score2 = score(
         my_knn,
         X_test,
         y_test,
-        k=k,
-        sorting_algorithm="bubble"
+        k=k
     )
 
-    created_accuracy.append(score2)
+
+    created_accuracy.append(
+        score2
+    )
 
 
-# --------------------------------------------------
-# DISPLAY ACCURACY VALUES
-# --------------------------------------------------
+# ------------------------------------------------
+# DISPLAY A8 RESULTS
+# ------------------------------------------------
 
-print("\nA8 - ACCURACY COMPARISON")
+print(
+    "\nK\tPackaged KNN\tCreated KNN"
+)
 
-print("\nK\tPackaged KNN\tCreated KNN")
 
-for i in range(len(k_values)):
+for i in range(
+        len(k_values)):
 
     print(
         k_values[i],
@@ -825,94 +1015,126 @@ for i in range(len(k_values)):
     )
 
 
-# --------------------------------------------------
-# PLOT ACCURACY VS K
-# --------------------------------------------------
+# ------------------------------------------------
+# A8 GRAPH
+# ------------------------------------------------
 
-plt.figure(figsize=(8, 5))
+plt.figure(
+    figsize=(9, 5)
+)
+
 
 plt.plot(
-    k_values,
+    list(k_values),
     packaged_accuracy,
     marker="o",
     label="Packaged KNN"
 )
 
+
 plt.plot(
-    k_values,
+    list(k_values),
     created_accuracy,
     marker="s",
     label="Created KNN"
 )
 
-plt.xlabel("Value of K")
-plt.ylabel("Accuracy")
 
-plt.title("Packaged KNN vs Created KNN")
+plt.xlabel(
+    "Value of K"
+)
 
-plt.xticks(list(k_values))
+
+plt.ylabel(
+    "Accuracy"
+)
+
+
+plt.title(
+    "Packaged KNN vs Created KNN"
+)
+
+
+plt.xticks(
+    list(k_values)
+)
+
 
 plt.legend()
 
+
 plt.grid()
 
-plt.show()
-# ==================================================
-# A9 : WEIGHTED KNN AND COMPARISON WITH A8
-# ==================================================
 
-# --------------------------------------------------
-# STORE WEIGHTED KNN ACCURACY
-# --------------------------------------------------
+plt.show()
+
+
+# ================================================================
+# A9 : WEIGHTED KNN
+# ================================================================
+
+print("\n================ A9 ================")
+
 
 weighted_accuracy = []
 
 
-# --------------------------------------------------
-# TEST DIFFERENT K VALUES
-# --------------------------------------------------
-
 for k in k_values:
-
-    # ----------------------------------------------
-    # WEIGHTED KNN
-    # Reuse weighted_knn() developed in A2
-    # ----------------------------------------------
-
-    weighted_predictions = weighted_knn(
-        X_train,
-        y_train,
-        X_test,
-        k=k,
-        sorting_algorithm="bubble"
-    )
-
-
-    # ----------------------------------------------
-    # CALCULATE ACCURACY
-    # ----------------------------------------------
 
     correct = 0
 
-    for i in range(len(y_test)):
 
-        if weighted_predictions[i] == y_test[i]:
+    for i in range(
+            len(X_test)):
+
+
+        # ------------------------------------------------
+        # REUSE A2 WEIGHTED KNN
+        #
+        # We use the FAST neighbour identification
+        # so the experiment does not get stuck.
+        # ------------------------------------------------
+
+        neighbors = fast_identify_neighbors(
+            X_train,
+            y_train,
+            X_test[i],
+            k
+        )
+
+
+        prediction = weighted_classify(
+            neighbors
+        )
+
+
+        if prediction == y_test[i]:
+
             correct += 1
 
-    accuracy = correct / len(y_test)
 
-    weighted_accuracy.append(accuracy)
+    accuracy = (
+        correct /
+        len(y_test)
+    )
 
 
-# --------------------------------------------------
-# DISPLAY A8 AND A9 RESULTS
-# --------------------------------------------------
+    weighted_accuracy.append(
+        accuracy
+    )
 
-print("\nA9 - WEIGHTED KNN COMPARISON")
 
-print("\nK\tPackaged KNN\tCreated KNN\tWeighted KNN")
+# ------------------------------------------------
+# DISPLAY A9 RESULTS
+# ------------------------------------------------
 
-for i in range(len(k_values)):
+print(
+    "\nK\tPackaged KNN\tCreated KNN\tWeighted KNN"
+)
+
+
+for i in range(
+        len(k_values)):
 
     print(
         k_values[i],
@@ -925,44 +1147,121 @@ for i in range(len(k_values)):
     )
 
 
-# --------------------------------------------------
-# PLOT A8 AND A9 RESULTS
-# --------------------------------------------------
+# ------------------------------------------------
+# A9 GRAPH
+# ------------------------------------------------
 
-plt.figure(figsize=(9, 5))
+plt.figure(
+    figsize=(10, 6)
+)
+
 
 plt.plot(
-    k_values,
+    list(k_values),
     packaged_accuracy,
     marker="o",
     label="Packaged KNN"
 )
 
+
 plt.plot(
-    k_values,
+    list(k_values),
     created_accuracy,
     marker="s",
     label="Created KNN"
 )
 
+
 plt.plot(
-    k_values,
+    list(k_values),
     weighted_accuracy,
     marker="^",
     label="Weighted KNN"
 )
 
-plt.xlabel("Value of K")
-plt.ylabel("Accuracy")
 
-plt.title(
-    "Comparison of Packaged KNN, Created KNN and Weighted KNN"
+plt.xlabel(
+    "Value of K"
 )
 
-plt.xticks(list(k_values))
+
+plt.ylabel(
+    "Accuracy"
+)
+
+
+plt.title(
+    "Packaged KNN vs Created KNN vs Weighted KNN"
+)
+
+
+plt.xticks(
+    list(k_values)
+)
+
 
 plt.legend()
 
+
 plt.grid()
 
+
 plt.show()
+
+
+# ================================================================
+# FINAL BEST K VALUES
+# ================================================================
+
+print("\n================ FINAL RESULTS ================")
+
+
+best_packaged_index = packaged_accuracy.index(
+    max(packaged_accuracy)
+)
+
+
+best_created_index = created_accuracy.index(
+    max(created_accuracy)
+)
+
+
+best_weighted_index = weighted_accuracy.index(
+    max(weighted_accuracy)
+)
+
+
+print(
+    "Best Packaged KNN K :",
+    list(k_values)[best_packaged_index]
+)
+
+print(
+    "Best Packaged Accuracy :",
+    packaged_accuracy[best_packaged_index] * 100,
+    "%"
+)
+
+
+print(
+    "\nBest Created KNN K :",
+    list(k_values)[best_created_index]
+)
+
+print(
+    "Best Created Accuracy :",
+    created_accuracy[best_created_index] * 100,
+    "%"
+)
+
+
+print(
+    "\nBest Weighted KNN K :",
+    list(k_values)[best_weighted_index]
+)
+
+print(
+    "Best Weighted Accuracy :",
+    weighted_accuracy[best_weighted_index] * 100,
+    "%"
+)
