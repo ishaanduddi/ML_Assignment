@@ -1169,6 +1169,38 @@ print(
     myscore * 100,
     "%"
 )
+# ================================================================
+# FAST DISTANCE CALCULATION FOR A8 AND A9
+# ================================================================
+
+def get_sorted_distances(X_train, y_train, test_point):
+
+    distances = []
+
+    for i in range(len(X_train)):
+
+        distance = euclidean(
+            test_point,
+            X_train[i]
+        )
+
+        distances.append(
+            (
+                distance,
+                y_train[i],
+                i
+            )
+        )
+
+    # Use Python's sorting only for A8/A9 performance.
+    # The three DSA sorting algorithms are already implemented
+    # and used in A1.
+
+    distances.sort(
+        key=lambda x: x[0]
+    )
+
+    return distances
 
 
 # ================================================================
@@ -1178,15 +1210,7 @@ print(
 print("\n================ A8 ================")
 
 
-# ------------------------------------------------
-# K VALUES
-# ------------------------------------------------
-
-k_values = range(
-    1,
-    16
-)
-
+k_values = range(1, 16)
 
 packaged_accuracy = []
 
@@ -1204,10 +1228,40 @@ my_knn = fit(
 
 
 # ------------------------------------------------
+# PRE-CALCULATE DISTANCES
+# ------------------------------------------------
+
+all_neighbors = []
+
+print("\nCalculating distances...")
+
+
+for i in range(len(X_test)):
+
+    neighbors = get_sorted_distances(
+        X_train,
+        y_train,
+        X_test[i]
+    )
+
+    all_neighbors.append(
+        neighbors
+    )
+
+
+print("Distance calculation completed.")
+
+
+# ------------------------------------------------
 # TEST DIFFERENT K VALUES
 # ------------------------------------------------
 
 for k in k_values:
+
+    print(
+        "Testing K =",
+        k
+    )
 
 
     # ------------------------------------------------
@@ -1218,18 +1272,15 @@ for k in k_values:
         n_neighbors=k
     )
 
-
     neigh.fit(
         X_train,
         y_train
     )
 
-
     score1 = neigh.score(
         X_test,
         y_test
     )
-
 
     packaged_accuracy.append(
         score1
@@ -1240,11 +1291,25 @@ for k in k_values:
     # CREATED KNN
     # ------------------------------------------------
 
-    score2 = score(
-        my_knn,
-        X_test,
-        y_test,
-        k=k
+    correct = 0
+
+
+    for i in range(len(X_test)):
+
+        neighbors = all_neighbors[i][:k]
+
+        prediction = classify(
+            neighbors
+        )
+
+        if prediction == y_test[i]:
+
+            correct += 1
+
+
+    score2 = (
+        correct /
+        len(y_test)
     )
 
 
@@ -1254,7 +1319,7 @@ for k in k_values:
 
 
 # ================================================================
-# DISPLAY A8 RESULTS
+# A8 RESULTS
 # ================================================================
 
 print(
@@ -1262,15 +1327,14 @@ print(
 )
 
 
-for i in range(
-        len(k_values)):
+for i in range(len(k_values)):
 
     print(
         k_values[i],
         "\t",
-        packaged_accuracy[i],
-        "\t",
-        created_accuracy[i]
+        round(packaged_accuracy[i], 4),
+        "\t\t",
+        round(created_accuracy[i], 4)
     )
 
 
@@ -1321,9 +1385,7 @@ plt.xticks(
 
 plt.legend()
 
-
 plt.grid()
-
 
 plt.show()
 
@@ -1339,29 +1401,28 @@ weighted_accuracy = []
 
 
 # ------------------------------------------------
-# TEST DIFFERENT K VALUES
+# REUSE THE DISTANCES ALREADY CALCULATED IN A8
 # ------------------------------------------------
 
 for k in k_values:
 
+    print(
+        "Testing Weighted K =",
+        k
+    )
+
+
     correct = 0
 
 
-    for i in range(
-            len(X_test)):
+    for i in range(len(X_test)):
+
+        # Take first k neighbours
+
+        neighbors = all_neighbors[i][:k]
 
 
-        # ------------------------------------------------
-        # REUSE A2 WEIGHTED CLASSIFICATION
-        # ------------------------------------------------
-
-        neighbors = fast_identify_neighbors(
-            X_train,
-            y_train,
-            X_test[i],
-            k
-        )
-
+        # Weighted classification
 
         prediction = weighted_classify(
             neighbors
@@ -1385,7 +1446,7 @@ for k in k_values:
 
 
 # ================================================================
-# DISPLAY A9 RESULTS
+# A9 RESULTS
 # ================================================================
 
 print(
@@ -1393,17 +1454,16 @@ print(
 )
 
 
-for i in range(
-        len(k_values)):
+for i in range(len(k_values)):
 
     print(
         k_values[i],
         "\t",
-        packaged_accuracy[i],
-        "\t",
-        created_accuracy[i],
-        "\t",
-        weighted_accuracy[i]
+        round(packaged_accuracy[i], 4),
+        "\t\t",
+        round(created_accuracy[i], 4),
+        "\t\t",
+        round(weighted_accuracy[i], 4)
     )
 
 
@@ -1462,9 +1522,7 @@ plt.xticks(
 
 plt.legend()
 
-
 plt.grid()
-
 
 plt.show()
 
@@ -1486,11 +1544,9 @@ best_packaged_index = packaged_accuracy.index(
     max(packaged_accuracy)
 )
 
-
 best_packaged_k = list(
     k_values
 )[best_packaged_index]
-
 
 best_packaged_accuracy = (
     packaged_accuracy[
@@ -1507,11 +1563,9 @@ best_created_index = created_accuracy.index(
     max(created_accuracy)
 )
 
-
 best_created_k = list(
     k_values
 )[best_created_index]
-
 
 best_created_accuracy = (
     created_accuracy[
@@ -1528,11 +1582,9 @@ best_weighted_index = weighted_accuracy.index(
     max(weighted_accuracy)
 )
 
-
 best_weighted_k = list(
     k_values
 )[best_weighted_index]
-
 
 best_weighted_accuracy = (
     weighted_accuracy[
@@ -1542,14 +1594,13 @@ best_weighted_accuracy = (
 
 
 # ------------------------------------------------
-# PRINT RESULTS
+# PRINT
 # ------------------------------------------------
 
 print(
     "\nBest Packaged KNN K :",
     best_packaged_k
 )
-
 
 print(
     "Best Packaged Accuracy :",
@@ -1563,7 +1614,6 @@ print(
     best_created_k
 )
 
-
 print(
     "Best Created Accuracy :",
     best_created_accuracy * 100,
@@ -1575,7 +1625,6 @@ print(
     "\nBest Weighted KNN K :",
     best_weighted_k
 )
-
 
 print(
     "Best Weighted Accuracy :",
