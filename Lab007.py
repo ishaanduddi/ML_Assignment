@@ -7,7 +7,7 @@ from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import accuracy_score
 
 
-df = pd.read_excel("thyroid_dataset.xlsx")
+df = pd.read_excel(r"C:\ISHU\Education\Amrita\5th_Sem\ML\Assignment\Material\thyroid_dataset.xlsx")
 
 cols = ["age", "TSH", "T3", "TT4", "T4U", "FTI", "TBG"]
 
@@ -127,7 +127,6 @@ def show_tree(tree, names):
     plt.title("Decision Tree")
     plt.show()
 
-
 # A7
 def boundary(X, y, names):
     tree = DecisionTreeClassifier(
@@ -145,8 +144,8 @@ def boundary(X, y, names):
     x2_max = X[:, 1].max() + 1
 
     xx, yy = np.meshgrid(
-        np.arange(x1_min, x1_max, 0.1),
-        np.arange(x2_min, x2_max, 0.1)
+        np.linspace(x1_min, x1_max, 100),
+        np.linspace(x2_min, x2_max, 100)
     )
 
     pred = tree.predict(
@@ -176,8 +175,7 @@ def boundary(X, y, names):
     plt.title("Decision Tree Decision Boundary")
 
     plt.show()
-
-
+    
 # A8
 def tune_tree(X_train, y_train):
     tree = DecisionTreeClassifier(random_state=42)
